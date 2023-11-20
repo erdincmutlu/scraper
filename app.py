@@ -21,12 +21,14 @@ def get_page_content(url):
         return None
 
 
-def parse_page_content(content):
+def parse_page_content(content, url):
     global links_found
     soup = BeautifulSoup(content, "html.parser")
 
     title = soup.title.text
     print(f"Page Title: {title}")
+
+    write_page(soup, url)
 
     links = get_page_links(soup)
     for link in links:
@@ -35,6 +37,22 @@ def parse_page_content(content):
             links_found[link] = False
             print(f"link added: [{link}]")
             print(f"Total len of links {len(links_found)}")
+
+
+def write_page(content, url):
+    filename = os.path.join("output", valid_filename(url) + ".txt")
+
+    # Writing the text content to a file
+    with open(filename, "w", encoding="utf-8") as file:
+        file.write(content.title.text)
+
+
+def valid_filename(filename):
+    # Remove invalid characters from the filename
+    valid_chars = "-_.() abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    valid_filename = "".join(c if c in valid_chars else "_" for c in filename)
+
+    return valid_filename
 
 
 def get_page_links(soup):
@@ -88,7 +106,7 @@ def main():
         page_content = get_page_content(url)
 
         if page_content:
-            parse_page_content(page_content)
+            parse_page_content(page_content, url)
 
         links_found[url] = True
 
