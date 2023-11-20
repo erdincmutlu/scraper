@@ -4,10 +4,6 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 
-load_dotenv()
-
-base_url = os.getenv("base_url")
-
 # Dict of found link as key and visited (bool) as value
 links_found = {}
 
@@ -36,8 +32,8 @@ def parse_page_content(content, url):
         if link not in links_found.keys() and link.startswith(base_url):
             # Add to link found
             links_found[link] = False
-            print(f"link added: [{link}]")
-            print(f"Total len of links {len(links_found)}")
+
+    print(f"Page finished. Total links found {len(links_found)}")
 
 
 def write_page(content, url):
@@ -45,7 +41,8 @@ def write_page(content, url):
 
     # Writing the text content to a file
     with open(filename, "w", encoding="utf-8") as file:
-        file.write(content.title.text)
+        file.write(f"URL: {url}\n")
+        file.write(f"Title: {content.title.text}\n")
 
 
 def valid_filename(filename):
@@ -99,11 +96,16 @@ def get_next_link():
 
 
 def main():
+    load_dotenv()
+
     global links_found
-    url = base_url
+    global base_url
+    base_url = os.getenv("base_url")
+
     Path("output").mkdir(parents=True, exist_ok=True)
 
     completed = False
+    url = base_url
     while not completed:
         page_content = get_page_content(url)
 
