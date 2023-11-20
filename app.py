@@ -10,6 +10,7 @@ links_found = {}
 show_pages_only = False
 ignored_extensions = ["doc", "docx", "pdf", "xls", "xlsx"]
 
+
 def get_page_content(url):
     print(f"Parsing page: {url}")
     response = requests.get(url)
@@ -59,11 +60,7 @@ def valid_filename(filename):
 def get_page_links(soup):
     links = []
     for link in soup.find_all("a"):
-        l = link.get("href")
-
-        # Don't process linking to doc or pdf file
-        if l.endswith(".doc") or l.endswith(".pdf"):
-            continue
+        l = link.get("href").strip()
 
         if l.startswith("mailto:"):
             continue
@@ -83,9 +80,25 @@ def get_page_links(soup):
         if not absolute.startswith(base_url):
             continue
 
+        # Don't process linking to a file
+        extension = get_extension(l)
+        if extension in ignored_extensions:
+            print(f"Found link with ignored file extension: {l}")
+            continue
+        if extension != "":
+            print(f"Found new extension: {extension} for link {l}")
+
         links.append(absolute)
 
     return links
+
+
+def get_extension(link):
+    last_dot_index = link.rfind(".")
+    if last_dot_index > len(base_url):
+        return link[last_dot_index + 1 :]
+
+    return ""
 
 
 def make_absolute_url(link):
@@ -136,7 +149,7 @@ def main():
         links_found[url] = True
 
         url = get_next_link()
-        if url is None or len(links_found) > 400:
+        if url is None or len(links_found) > 600:
             completed = True
 
     # Print all found pages
