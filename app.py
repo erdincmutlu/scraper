@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
+from pathlib import Path
 
 load_dotenv()
 
@@ -100,6 +101,7 @@ def get_next_link():
 def main():
     global links_found
     url = base_url
+    Path("output").mkdir(parents=True, exist_ok=True)
 
     completed = False
     while not completed:
