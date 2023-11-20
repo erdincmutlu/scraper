@@ -8,7 +8,18 @@ import json
 # Dict of found link as key and visited (bool) as value
 links_found = {}
 show_pages_only = False
-ignored_extensions = ["doc", "docx", "pdf", "xls", "xlsx"]
+ignored_extensions = [
+    "doc",
+    "docx",
+    "jpg",
+    "pdf",
+    "png",
+    "ppt",
+    "pptx",
+    "xls",
+    "xlsx",
+    "zip",
+]
 
 
 def get_page_content(url):
@@ -149,7 +160,7 @@ def main():
         links_found[url] = True
 
         url = get_next_link()
-        if url is None or len(links_found) > 600:
+        if url is None or len(links_found) > 1200:
             completed = True
 
     # Print all found pages
