@@ -10,6 +10,7 @@ base_url = os.getenv("base_url")
 # Dict of found link as key and visited (bool) as value
 links_found = {}
 
+
 def get_page_content(url):
     print(f"Parsing page: {url}")
     response = requests.get(url)
@@ -21,6 +22,7 @@ def get_page_content(url):
 
 
 def parse_page_content(content):
+    global links_found
     soup = BeautifulSoup(content, "html.parser")
 
     title = soup.title.text
@@ -44,11 +46,13 @@ def get_page_links(soup):
         if l.endswith(".doc") or l.endswith(".pdf"):
             continue
 
+        if l == "/" or l == "":
+            continue
+
         absolute = make_absolute_url(l)
-        
 
         # Don't follow external links
-        if not l.startswith(base_url):
+        if not absolute.startswith(base_url):
             continue
 
         print(f"Found link: {absolute}")
@@ -76,6 +80,7 @@ def get_next_link():
 
 
 def main():
+    global links_found
     url = base_url
 
     completed = False
