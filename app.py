@@ -3,11 +3,12 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
 from pathlib import Path
+import json
 
 # Dict of found link as key and visited (bool) as value
 links_found = {}
 show_pages_only = False
-
+ignored_extensions = ["doc", "docx", "pdf", "xls", "xlsx"]
 
 def get_page_content(url):
     print(f"Parsing page: {url}")
@@ -111,9 +112,15 @@ def main():
     global links_found
     global base_url
     global show_pages_only
+    global ignored_extensions
 
     base_url = os.getenv("base_url")
     show_pages_only = os.getenv("show_pages_only")
+    unignored_extensions = json.loads(os.getenv("unignored_extensions"))
+    for extension in unignored_extensions:
+        if extension.lower() in ignored_extensions:
+            ignored_extensions.remove(extension.lower())
+
     links_found = {base_url: False}
 
     Path("output").mkdir(parents=True, exist_ok=True)
@@ -134,7 +141,7 @@ def main():
 
     # Print all found pages
     for key in links_found:
-        print(f"Link:{key}")
+        print(f"Link: {key}")
 
 
 if __name__ == "__main__":
