@@ -6,6 +6,7 @@ from pathlib import Path
 
 # Dict of found link as key and visited (bool) as value
 links_found = {}
+show_pages_only = False
 
 
 def get_page_content(url):
@@ -23,9 +24,10 @@ def parse_page_content(content, url):
     soup = BeautifulSoup(content, "html.parser")
 
     title = soup.title.text
-    print(f"Page Title: {title}")
+    # print(f"Page Title: {title}")
 
-    write_page(soup, url)
+    if not show_pages_only:
+        write_page(soup, url)
 
     links = get_page_links(soup)
     for link in links:
@@ -33,7 +35,7 @@ def parse_page_content(content, url):
             # Add to link found
             links_found[link] = False
 
-    print(f"Page finished. Total links found {len(links_found)}")
+    print(f"Page finished. Total links count {len(links_found)}")
 
 
 def write_page(content, url):
@@ -62,6 +64,15 @@ def get_page_links(soup):
         if l.endswith(".doc") or l.endswith(".pdf"):
             continue
 
+        if l.startswith("mailto:"):
+            continue
+
+        # Remove archored links and query parameters
+        to_cut_list = ["#", "?"]
+        for to_cut in to_cut_list:
+            if to_cut in l:
+                l = l[: l.index(to_cut)]
+
         if l == "/" or l == "":
             continue
 
@@ -71,7 +82,6 @@ def get_page_links(soup):
         if not absolute.startswith(base_url):
             continue
 
-        print(f"Found link: {absolute}")
         links.append(absolute)
 
     return links
@@ -100,7 +110,11 @@ def main():
 
     global links_found
     global base_url
+    global show_pages_only
+
     base_url = os.getenv("base_url")
+    show_pages_only = os.getenv("show_pages_only")
+    links_found = {base_url: False}
 
     Path("output").mkdir(parents=True, exist_ok=True)
 
@@ -115,8 +129,12 @@ def main():
         links_found[url] = True
 
         url = get_next_link()
-        if url is None:
+        if url is None or len(links_found) > 400:
             completed = True
+
+    # Print all found pages
+    for key in links_found:
+        print(f"Link:{key}")
 
 
 if __name__ == "__main__":
