@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import os
 from pathlib import Path
 import json
+import logging
+from datetime import datetime
 
 # Dict of found link as key and visited (bool) as value
 links_found = {}
@@ -23,12 +25,12 @@ ignored_extensions = [
 
 
 def get_page_content(url):
-    print(f"Parsing page: {url}")
+    logging.info(f"Parsing page: {url}")
     response = requests.get(url)
     if response.status_code == 200:
         return response.content
     else:
-        print(f"Failed to retrieve content from {url}")
+        logging.error(f"Failed to retrieve content from {url}")
         return None
 
 
@@ -37,7 +39,7 @@ def parse_page_content(content, url):
     soup = BeautifulSoup(content, "html.parser")
 
     title = soup.title.text
-    # print(f"Page Title: {title}")
+    logging.debug(f"Page Title: {title}")
 
     if not show_pages_only:
         write_page(soup, url)
@@ -48,7 +50,7 @@ def parse_page_content(content, url):
             # Add to link found
             links_found[link] = False
 
-    print(f"Page finished. Total links count {len(links_found)}")
+    logging.info(f"Page finished. Total links count {len(links_found)}")
 
 
 def write_page(content, url):
@@ -94,10 +96,9 @@ def get_page_links(soup):
         # Don't process linking to a file
         extension = get_extension(l)
         if extension in ignored_extensions:
-            print(f"Found link with ignored file extension: {l}")
             continue
         if extension != "":
-            print(f"Found new extension: {extension} for link {l}")
+            logging.debug(f"Found new extension: {extension} for link {l}")
 
         links.append(absolute)
 
@@ -133,6 +134,11 @@ def get_next_link():
 def main():
     load_dotenv()
 
+    log_name = "log_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".log"
+    logging.basicConfig(
+        filename=log_name, format="%(levelname)s:%(message)s", level=logging.DEBUG
+    )
+
     global links_found
     global base_url
     global show_pages_only
@@ -164,8 +170,9 @@ def main():
             completed = True
 
     # Print all found pages
+    logging.info("All found links")
     for key in links_found:
-        print(f"Link: {key}")
+        logging.info(f"Link: {key}")
 
 
 if __name__ == "__main__":
